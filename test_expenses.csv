@@ -1,0 +1,4 @@
+Date,Amount (MYR),Category,Payment_Method,Merchant,Item_Description
+2023-10-01,15.50,Food & Beverage,Cash,MMU Cafe,Lunch
+2023-10-02,5.00,Transport,Card,Grab,Ride to mall
+2023-10-03,120.00,Shopping,Online,Shopee,Clothes
