@@ -11,7 +11,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="flex items-center justify-center min-h-screen bg-slate-50">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold tracking-tight">Login to Zenith Finance</CardTitle>
+                    <CardTitle className="text-2xl font-bold tracking-tight">Login to MyDOIT</CardTitle>
                     <CardDescription>
                         Enter your email and password to access your dashboard.
                     </CardDescription>

@@ -13,7 +13,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold tracking-tight">Create an account</CardTitle>
                     <CardDescription>
-                        Enter your email below to create your Zenith Finance account.
+                        Enter your email below to create your MyDOIT account.
                     </CardDescription>
                 </CardHeader>
                 <form action={signup}>

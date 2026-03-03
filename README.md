@@ -1,6 +1,6 @@
-# Zenith Finance
+# MyDOIT
 
-Zenith Finance is a full-stack, AI-powered personal finance management application built to help users seamlessly track, visualize, and analyze their financial health.
+MyDOIT is a full-stack, AI-powered personal finance management application built to help users seamlessly track, visualize, and analyze their financial health.
 
 ## Features
 

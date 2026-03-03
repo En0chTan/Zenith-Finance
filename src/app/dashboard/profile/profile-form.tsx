@@ -167,7 +167,7 @@ export function ProfileForm({ profile }: { profile: any }) {
                 <div className="flex flex-col gap-2">
                     <h3 className="text-lg font-medium text-destructive">Danger Zone</h3>
                     <p className="text-sm text-muted-foreground">
-                        Permanently delete your Zenith Finance account and all of your transaction data. This action is irreversible.
+                        Permanently delete your MyDOIT account and all of your transaction data. This action is irreversible.
                     </p>
                     <div className="mt-4">
                         <Button
