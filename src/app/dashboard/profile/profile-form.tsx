@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { updateProfile, uploadAvatar } from './actions'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,6 +16,8 @@ export function ProfileForm({ profile }: { profile: any }) {
     const [isUploading, setIsUploading] = useState(false)
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
+    const [isDeleting, setIsDeleting] = useState(false)
+    const router = useRouter()
 
     async function handleUpdate(formData: FormData) {
         setMessage('')
@@ -48,6 +52,42 @@ export function ProfileForm({ profile }: { profile: any }) {
             setMessage('Avatar uploaded successfully!')
         }
         setIsUploading(false)
+    }
+
+    async function handleDeleteAccount() {
+        if (!window.confirm("Are you absolutely sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.")) {
+            return
+        }
+
+        setIsDeleting(true)
+        setError('')
+
+        try {
+            const response = await fetch('/api/user/delete', {
+                method: 'POST',
+            })
+
+            const result = await response.json()
+
+            if (!response.ok) {
+                setError(result.error || 'Failed to delete account')
+                setIsDeleting(false)
+                return
+            }
+
+            // Successfully deleted user on the backend.
+            // Clear the local session manually just in case, then redirect to login.
+            const supabase = createClient()
+            await supabase.auth.signOut()
+
+            router.push('/login')
+            router.refresh()
+
+        } catch (err) {
+            console.error(err)
+            setError('An unexpected error occurred while deleting your account.')
+            setIsDeleting(false)
+        }
     }
 
     return (
@@ -122,6 +162,24 @@ export function ProfileForm({ profile }: { profile: any }) {
                     {isPending ? 'Saving...' : 'Save Profile'}
                 </Button>
             </form>
+
+            <div className="pt-8 mt-8 border-t border-border">
+                <div className="flex flex-col gap-2">
+                    <h3 className="text-lg font-medium text-destructive">Danger Zone</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Permanently delete your Zenith Finance account and all of your transaction data. This action is irreversible.
+                    </p>
+                    <div className="mt-4">
+                        <Button
+                            variant="destructive"
+                            onClick={handleDeleteAccount}
+                            disabled={isDeleting || isPending || isUploading}
+                        >
+                            {isDeleting ? 'Deleting Account...' : 'Delete Account'}
+                        </Button>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
