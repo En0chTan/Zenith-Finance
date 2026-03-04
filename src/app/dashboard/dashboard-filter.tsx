@@ -4,10 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 
-// Generate an array of years dynamically, e.g., from 2010 to current year + 5
-const currentYearNum = new Date().getFullYear()
-const YEARS = Array.from({ length: 20 }, (_, i) => (currentYearNum - 5 + i).toString()).sort((a, b) => b.localeCompare(a))
-
 const MONTHS = [
     { value: 'all', label: 'All Months' },
     { value: '1', label: 'January' },
@@ -24,7 +20,7 @@ const MONTHS = [
     { value: '12', label: 'December' },
 ]
 
-export function DashboardFilter() {
+export function DashboardFilter({ years, availableMonths }: { years: string[], availableMonths: string[] }) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -38,6 +34,12 @@ export function DashboardFilter() {
         } else {
             params.set(key, value)
         }
+
+        // If year changes, reset the month so we don't end up on an invalid month for the new year
+        if (key === 'year') {
+            params.delete('month')
+        }
+
         router.push(`/dashboard?${params.toString()}`)
     }
 
@@ -51,7 +53,7 @@ export function DashboardFilter() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Years</SelectItem>
-                        {YEARS.map(y => (
+                        {years.map(y => (
                             <SelectItem key={y} value={y}>{y}</SelectItem>
                         ))}
                     </SelectContent>
@@ -65,9 +67,13 @@ export function DashboardFilter() {
                         <SelectValue placeholder="All Months" />
                     </SelectTrigger>
                     <SelectContent>
-                        {MONTHS.map(m => (
-                            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                        ))}
+                        <SelectItem value="all">All Months</SelectItem>
+                        {availableMonths.map(mValue => {
+                            const monthObj = MONTHS.find(m => m.value === mValue)
+                            return monthObj ? (
+                                <SelectItem key={mValue} value={mValue}>{monthObj.label}</SelectItem>
+                            ) : null
+                        })}
                     </SelectContent>
                 </Select>
             </div>

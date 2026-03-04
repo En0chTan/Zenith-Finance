@@ -163,3 +163,133 @@ export async function getDashboardData(year?: string, month?: string) {
         expenseTrendData: expenseDataList
     }
 }
+
+export async function getAvailableYears() {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return ['2025'] // Fallback
+    }
+
+    const years = new Set<string>()
+    let page = 0
+    const pageSize = 1000
+
+    while (true) {
+        const { data, error } = await supabase
+            .from('transactions')
+            .select('date')
+            .eq('user_id', user.id)
+            .range(page * pageSize, (page + 1) * pageSize - 1)
+
+        if (error || !data) {
+            break
+        }
+
+        data.forEach(t => {
+            try {
+                const year = t.date.split('-')[0]
+                if (year && year.length === 4) {
+                    years.add(year)
+                }
+            } catch (e) {
+                // ignore
+            }
+        })
+
+        if (data.length < pageSize) break
+        page++
+    }
+
+    const uniqueYears = Array.from(years).sort((a, b) => b.localeCompare(a)) // Sort descending
+
+    // Add current year if it's not present just in case
+    const currentYear = new Date().getFullYear().toString()
+    if (!uniqueYears.includes(currentYear) && uniqueYears.length === 0) {
+        uniqueYears.push(currentYear)
+    }
+
+    return uniqueYears.length > 0 ? uniqueYears : ['2025']
+}
+
+export async function getAvailableMonths(year: string) {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || year === 'all') {
+        return []
+    }
+
+    const months = new Set<string>()
+    let page = 0
+    const pageSize = 1000
+
+    while (true) {
+        const { data, error } = await supabase
+            .from('transactions')
+            .select('date')
+            .eq('user_id', user.id)
+            .gte('date', `${year}-01-01`)
+            .lte('date', `${year}-12-31`)
+            .range(page * pageSize, (page + 1) * pageSize - 1)
+
+        if (error || !data) {
+            break
+        }
+
+        data.forEach(t => {
+            try {
+                const parts = t.date.split('-')
+                if (parts.length >= 2) {
+                    // Remove leading zero for our logical format, e.g., '03' -> '3'
+                    const month = parseInt(parts[1], 10).toString()
+                    months.add(month)
+                }
+            } catch (e) {
+                // ignore
+            }
+        })
+
+        if (data.length < pageSize) break
+        page++
+    }
+
+    // Sort logically ascending 1 -> 12
+    return Array.from(months).sort((a, b) => parseInt(a) - parseInt(b))
+}
+
+export async function getMostRecentTransactionDate() {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return null
+    }
+
+    // Get the single most recent transaction
+    const { data, error } = await supabase
+        .from('transactions')
+        .select('date')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(1)
+
+    if (error || !data || data.length === 0) {
+        return null
+    }
+
+    try {
+        const parts = data[0].date.split('-')
+        if (parts.length >= 2) {
+            return {
+                year: parts[0],
+                month: parseInt(parts[1], 10).toString()
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    return null
+}

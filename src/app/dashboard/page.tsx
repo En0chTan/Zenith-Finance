@@ -1,4 +1,5 @@
-import { getDashboardData } from './actions'
+import { redirect } from 'next/navigation'
+import { getDashboardData, getAvailableYears, getAvailableMonths, getMostRecentTransactionDate } from './actions'
 import { getProfile } from './profile/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DashboardCharts } from './charts'
@@ -12,11 +13,24 @@ export default async function DashboardPage(props: {
     searchParams?: Promise<{ [key: string]: string | undefined }>
 }) {
     const sp = await props.searchParams
-    const year = sp?.year
-    const month = sp?.month
+    let year = sp?.year
+    let month = sp?.month
+
+    // Check if we need to default to the most recent data
+    if (!year && !month) {
+        const recentDate = await getMostRecentTransactionDate()
+        if (recentDate) {
+            // Redirect to the dashboard with the most recent year/month params
+            redirect(`/dashboard?year=${recentDate.year}&month=${recentDate.month}`)
+        }
+    }
 
     const data = await getDashboardData(year, month)
     const profile = await getProfile()
+    const availableYears = await getAvailableYears()
+
+    // Only fetch months if a specific year is selected, otherwise we might fetch too much or it's irrelevant
+    const availableMonths = year && year !== 'all' ? await getAvailableMonths(year) : []
 
     if (!data) return <div>Please login.</div>
 
@@ -30,7 +44,7 @@ export default async function DashboardPage(props: {
                     <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
                     <p className="text-slate-500 mt-1">Hello {userName}, here's a summary of your finances.</p>
                 </div>
-                <DashboardFilter />
+                <DashboardFilter years={availableYears} availableMonths={availableMonths} />
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
